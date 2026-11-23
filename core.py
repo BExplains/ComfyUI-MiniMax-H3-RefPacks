@@ -105,7 +105,7 @@ def reference_window(references, output_frames, compress_motion=False):
                 continue
             z = validate_latent(entry["latent"], "video")
             if z.shape[2] < 2 or (z.shape[2] - 2) % 5:
-                raise ValueError("Reference video does not have a native H3 temporal grid. Recreate it with Encode H3 Video Reference.")
+                raise ValueError("Reference video does not have a native H3 temporal grid. Recreate it with Encode H3 Video Refpack.")
             source_frames = int(entry.get("frame_count", ((z.shape[2]-2)//5)*17+5))
             expected_t = 2 + ((source_frames-5)//17)*5
             if source_frames < 5 or source_frames % 17 != 5 or expected_t != z.shape[2]:

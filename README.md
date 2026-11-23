@@ -6,7 +6,7 @@ Prepare your characters, objects, outfits, locations, motion clips and audio onc
 
 The collection builds on **[BExplains RefPacks](https://github.com/BExplains/ComfyUI-RefPacks)**, which supplies individual pack loading/saving, reference grouping and self-contained scene files. Install both packages alongside each other.
 
-**Version 1.0.0.** The shared package's Flux 2 and LTXV adapters remain experimental testing integrations. This collection handles H3-specific preparation, prompt formats, temporal rules and output intent.
+**Version 1.0.1.** The shared package's Flux 2 and LTXV adapters remain experimental testing integrations. This collection handles H3-specific preparation, prompt formats, temporal rules and output intent.
 
 ## Contents
 
@@ -44,6 +44,19 @@ Reference encoding is not LoRA training, and role labels do not guarantee identi
 
 Requires current ComfyUI with native MiniMax H3 support and the shared **BExplains RefPacks** package. Use matching H3 model weights, H3 Qwen3-VL text encoder and VAEs for your workflow.
 
+### Install from the Comfy Registry
+
+Install with ComfyUI-Manager or Comfy CLI:
+
+```bash
+comfy node install bexplains-refpacks
+comfy node install bexplains-h3-refpacks
+```
+
+[Registry listing](https://registry.comfy.org/publishers/bexplains/nodes/bexplains-h3-refpacks). New releases must complete registry security processing before an active release is available.
+
+The H3 collection requires the shared **BExplains RefPacks** custom-node package. Install it separately; Python dependency installation does not install the companion node pack. Keep only one installed copy of each package, then restart ComfyUI.
+
 ### Install from source
 
 From your ComfyUI installation directory:
@@ -54,7 +67,7 @@ git clone https://github.com/BExplains/ComfyUI-RefPacks.git BExplains_RefPacks
 git clone https://github.com/BExplains/ComfyUI-MiniMax-H3-RefPacks.git BExplains_H3_RefPacks
 ```
 
-Skip either clone if that package is already installed. Retain the explicit destination names: **`BExplains_RefPacks`** and **`BExplains_H3_RefPacks`**. The H3 collection discovers the shared package as a sibling folder.
+Skip either clone if that package is already installed. These commands retain the legacy destination names. The H3 collection also discovers the shared package under its registry name `bexplains-refpacks` or source-clone name `ComfyUI-RefPacks`, including configured custom-node directories.
 
 If needed, run this from the ComfyUI directory using ComfyUI's Python environment:
 
@@ -83,7 +96,7 @@ For image output with a video diffusion model, the receiver allocates the archit
 
 ### Prepare and save a character
 
-1. Add **BExplains Encode H3 Image References**.
+1. Add **Encode H3 Image Refpack**.
 2. Connect a native H3 VAE and your reference image or image batch.
 3. Enter a name such as `mai_concert`.
 4. Connect `refpack` to the shared **BExplains Save RefPack** node.
@@ -128,9 +141,9 @@ Match prompt format, Auto Outfit and Allow Raw Prompt to the receiver. Inspector
 
 | Node / internal ID | Main inputs | Output and behavior |
 | --- | --- | --- |
-| **BExplains Encode H3 Image References** / `BExplainsH3EncodeImages` | `vae`, `images`, `name`, `reference_megapixels` | One RefPack with a separate entry for each batch image; VAE type selects preparation path |
-| **BExplains Encode H3 Video Reference** / `BExplainsH3EncodeVideo` | `vae`, decoded `frames`, source `fps`, `name`, `reference_megapixels`, `frame_policy` | One video RefPack; resamples to 24 fps and pads or trims to `17n + 5` |
-| **BExplains Encode H3 Audio Reference** / `BExplainsH3EncodeAudio` | `audio_vae`, `audio`, `name` | One audio RefPack; native audio encoding/resampling path |
+| **Encode H3 Image Refpack** / `BExplainsH3EncodeImages` | `vae`, `images`, `name`, `reference_megapixels` | One RefPack with a separate entry for each batch image; VAE type selects preparation path |
+| **Encode H3 Video Refpack** / `BExplainsH3EncodeVideo` | `vae`, decoded `frames`, source `fps`, `name`, `reference_megapixels`, `frame_policy` | One video RefPack; resamples to 24 fps and pads or trims to `17n + 5` |
+| **Encode H3 Audio Refpack** / `BExplainsH3EncodeAudio` | `audio_vae`, `audio`, `name` | One audio RefPack; native audio encoding/resampling path |
 | **BExplains Pack Existing H3 Latent** / `BExplainsH3PackLatent` | `latent`, matching `vision_images`, `kind`, `name`, `fps` | Wraps matching cached data without another VAE encode |
 | **BExplains Import H3 RefMod** / `BExplainsH3ImportRefMod` | `filename`, `vae`, `name`, optional original images/frames | Limited one-time import of standalone full-encode image/video RefMods |
 
@@ -356,7 +369,7 @@ For still output with the video architecture, complete input references remain a
 | Standalone full-encode H3 RefMod import | Limited import; bundles and trained/pooled data are rejected |
 | Other model-family latents | Not interchangeable; recreate with the appropriate VAE |
 
-The current development checks comprise **82 passing CPU tests**, including native-source payload comparisons, saved-set fidelity, typed-role addressing, raw prompt passthrough and batch-wrapper composition. These checks do not establish pretrained-model image quality or performance. No live ComfyUI frontend or pretrained-model GPU generation was performed in that validation environment. See [VALIDATION.md](VALIDATION.md) and [CHANGELOG.md](CHANGELOG.md).
+The current development checks comprise **87 passing CPU tests**, including native-source payload comparisons, saved-set fidelity, typed-role addressing, raw prompt passthrough and batch-wrapper composition. These checks do not establish pretrained-model image quality or performance. No live ComfyUI frontend or pretrained-model GPU generation was performed in that validation environment. See [VALIDATION.md](VALIDATION.md) and [CHANGELOG.md](CHANGELOG.md).
 
 ## Resolution and performance
 
@@ -388,7 +401,7 @@ Weights and media are not bundled. Select locally installed files before running
 
 | Problem | Check |
 | --- | --- |
-| Shared package missing | Install both sibling folders using the explicit names in the installation commands. |
+| Shared package missing | Install the shared package using the registry command or one of the supported source folder names, then restart ComfyUI. |
 | Nodes absent from search | Check startup errors, restart ComfyUI and refresh the browser. |
 | Image VAE reports many latent frames | Connect the intended decoding VAE to the receiving encoder, then route its VAE output to VAEDecode. The sampler needs a single-frame output layout for an image VAE. |
 | An image request becomes one image | With an image VAE, lengths above 4 deliberately fall back to one. Use 1–4 for the requested batch count. |
@@ -457,3 +470,7 @@ Use [this collection's issues](https://github.com/BExplains/ComfyUI-MiniMax-H3-R
 - **[BExplains](https://github.com/BExplains)** — [shared RefPacks](https://github.com/BExplains/ComfyUI-RefPacks), this H3 collection, and the earlier [H3 Image RefMods creator](https://github.com/BExplains/ComfyUI-MiniMaxH3-Image-RefMods).
 
 Neither the earlier creator nor ComfyUI-MiniMaxH3Mod is a runtime dependency of these RefPacks workflows. Attribution does not imply endorsement; dependencies and upstream projects retain their own licenses.
+
+## License
+
+Released under the [MIT License](LICENSE). Model weights and third-party dependencies retain their own licenses.

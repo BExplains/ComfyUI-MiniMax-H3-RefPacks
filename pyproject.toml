@@ -1,0 +1,17 @@
+[project]
+name = "bexplains-h3-refpacks"
+version = "1.0.1"
+description = "Reusable image, video and audio references with role-aware prompting for native MiniMax H3. Requires BExplains RefPacks."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = ["safetensors>=0.4.3"]
+classifiers = ["Operating System :: OS Independent"]
+
+[project.urls]
+Repository = "https://github.com/BExplains/ComfyUI-MiniMax-H3-RefPacks"
+"Bug Tracker" = "https://github.com/BExplains/ComfyUI-MiniMax-H3-RefPacks/issues"
+
+[tool.comfy]
+PublisherId = "bexplains"
+DisplayName = "MiniMax H3 RefPacks (BExplains)"

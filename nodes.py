@@ -170,13 +170,13 @@ class BExplainsH3PackLatent:
         z = validate_latent(latent["samples"], kind)
         if kind == "image":
             if vision_images.shape[0] != 1:
-                raise ValueError("Pack one image latent at a time. Use Encode Images for multiple pictures.")
+                raise ValueError("Pack one image latent at a time. Use Encode H3 Image Refpack for multiple pictures.")
             entries = [_entry(kind,z,vision_images)]
         else:
             n = vision_images.shape[0]
             expected_t = 2 if n <= 5 else ((n-5)//17)*5+2
             if fps != 24 or n < 5 or n % 17 != 5 or z.shape[2] != expected_t:
-                raise ValueError("Video pixels and latent must describe the same H3-aligned 24 fps clip. Use Encode Video to prepare it automatically.")
+                raise ValueError("Video pixels and latent must describe the same H3-aligned 24 fps clip. Use Encode H3 Video Refpack to prepare it automatically.")
             ix = list(range(0,n,12))
             entries = [_entry(kind,z,vision_images[ix], [i/24 for i in ix], frame_count=n, fps=24.0)]
         return (_pack(name,task,entries),)
@@ -416,9 +416,9 @@ NODE_CLASS_MAPPINGS = {**LEGACY_CLASSES, **{c.__name__:c for c in CLASSES}}
 NODE_DISPLAY_NAME_MAPPINGS = {**LEGACY_NAMES,
     "BExplainsRefPackToH3": "BExplains RefPack to H3 Encoder",
     "BExplainsH3Duration": "BExplains H3 Duration",
-    "BExplainsH3EncodeImages": "BExplains Encode H3 Image References",
-    "BExplainsH3EncodeVideo": "BExplains Encode H3 Video Reference",
-    "BExplainsH3EncodeAudio": "BExplains Encode H3 Audio Reference",
+    "BExplainsH3EncodeImages": "Encode H3 Image Refpack",
+    "BExplainsH3EncodeVideo": "Encode H3 Video Refpack",
+    "BExplainsH3EncodeAudio": "Encode H3 Audio Refpack",
     "BExplainsH3PackLatent": "BExplains Pack Existing H3 Latent",
     "BExplainsSaveRefPack": "BExplains Save RefPack",
     "BExplainsLoadRefPack": "BExplains Load RefPack",
