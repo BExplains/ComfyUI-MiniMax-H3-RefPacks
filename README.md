@@ -30,10 +30,10 @@ The collection builds on **[BExplains RefPacks](https://github.com/BExplains/Com
 - Send cached visual reference pixels to H3's text encoder and cached VAE data to diffusion conditioning.
 - Compile plain shot instructions into H3's image or video prompt format.
 - Give Character and Item groups distinct subject definitions.
-- Resolve `<Character n>`, `<Item n>`, `<Motion n>`, `<Outfit n>` and `<Location n>` aliases automatically.
+- Resolve `<Character n>`, `<Item n>`, `<Motion n>`, `<Outfit n>`, `<Location n>` and `<Style n>` aliases automatically.
 - Inspect the exact Picture/Video/Audio slots and compiled prompt before encoding.
 - Pass a structured text or JSON prompt through unchanged when **Allow Raw Prompt** is enabled.
-- Choose image/video output intent from the connected decoding VAE, while retaining model-specific conditioning.
+- Choose Auto, Image or Video generation explicitly, while retaining model-specific conditioning.
 - Generate 1–4 independent image batch items using a wrapper around native H3's batch-one forward passes.
 - Convert seconds into valid H3 video frame counts with **H3 Duration**.
 - Preserve existing H3 node IDs and existing version-1 RefPacks.
@@ -131,7 +131,7 @@ For another shot, use **Load RefPacks References** and connect it directly to th
 
 ### Inspect before sampling
 
-Connect the reference set to **BExplains Inspect References**. Its map identifies each `<Picture n>`, `<Video n>` and `<Audio n>` with the source pack and local entry number. Enter an optional instruction to preview its compiled prompt without loading or running the text encoder.
+Connect the reference set to **BExplains Inspect Refpacks**. Its map identifies each `<Picture n>`, `<Video n>` and `<Audio n>` with the source pack and local entry number. Enter an optional instruction to preview its compiled prompt without loading or running the text encoder.
 
 Match prompt format, Auto Outfit and Allow Raw Prompt to the receiver. Inspector controls do not modify the receiving node's inputs.
 
@@ -160,11 +160,12 @@ Internal ID: `BExplainsRefPackToH3`.
 | `model` | Determines native image/video conditioning and stream layout |
 | `clip` | H3 Qwen3-VL text encoder, loaded with type `minimax` |
 | `references` | Assembled or loaded reference set |
-| `vae` | Intended output-decoding VAE; determines image versus video intent |
+| `vae` | Intended output-decoding VAE; must support the selected output mode |
+| `generation_mode` | Auto: length 1–4 means images; 5+ means video. Image/Video forces that output type |
 | `prompt` | Shot instruction, or an allowed structured raw prompt |
 | `negative_prompt` | Passed to the text encoder unchanged |
 | `width`, `height` | Output canvas dimensions |
-| `length` | Image count or video frame count, according to the VAE |
+| `length` | Image count or video frame count, according to generation mode |
 | `auto_outfit` | Add an outfit instruction when there is exactly one possible wearer and one outfit |
 | `log_performance` | Log reference sizes and encoding/sampling timing information |
 | `compress_motion` | Present complete video references instead of the default leading window |
@@ -176,13 +177,19 @@ The output VAE is the same object supplied at the input. Connecting it to VAEDec
 
 #### Image versus video intent
 
-| Connected decoding VAE | Length | Output |
-| --- | --- | --- |
-| H3 Image VAE or recognized single-frame-tuned H3 decoder | 1–4 | That many independent image batch items, each with temporal length 1 |
-| Image/still decoder | Above 4 | One image; the report and console explain the fallback |
-| H3 Video VAE | Positive integer | Video, aligned upward to at least 5 frames on the `17n + 5` grid |
+Select **generation_mode** on the H3 encoder. Its tooltip explains the rules:
 
-An H3 video diffusion model can intentionally be used for still output. The dedicated H3 Image diffusion model cannot generate video. VAE intent does not change which conditioning protocol the connected model requires.
+| Mode | Length | Output |
+| --- | --- | --- |
+| Auto | 1–4 | That many independent image batch items, each with temporal length 1 |
+| Auto | 5+ | Video, rounded upward to the `17n + 5` frame grid at 24 fps |
+| Image | 1–4 | That many independent image batch items |
+| Image | Above 4 | One image, with an explanation in the report |
+| Video | Any positive integer | Video, rounded upward to `17n + 5`, with a minimum of 5 frames |
+
+The VAE no longer selects generation mode. Connect a matching decoder. Video output requires a video-capable H3 VAE and H3 video diffusion model; incompatible combinations are rejected before text encoding. The H3 video model can still generate images. The dedicated H3 Image model cannot generate video.
+
+For older workflows that used an image VAE with a length above 4, explicitly choose **Image** to retain still output. For video workflows with lengths 1–4, explicitly choose **Video**. Existing workflows with image lengths 1–4 or video lengths 5+ can use Auto.
 
 Native H3 diffusion forwards accept only batch size one. For multiple images, this collection processes each batch item separately during each denoising forward, then concatenates the predictions back into the sampler's batch. Images use separate batch items and noise; they are not encoded as consecutive temporal frames. This is not a claim of native parallel batch acceleration.
 
@@ -202,19 +209,30 @@ The calculator uses 24 fps and rounds upward to the first valid `17n + 5` count:
 
 The UI accepts 0.01–170 seconds, staying within the receiver's 4096-frame input limit. It calculates video duration; it does not choose output intent or represent image batch count.
 
-### BExplains Inspect References
+### BExplains Inspect Refpacks
 
 Internal ID: `BExplainsInspectRefPacks`.
 
-Inputs: `references`, optional `prompt`, `prompt_format`, `auto_outfit`, `allow_raw_prompt`.
+Inputs: `references`, optional `prompt`, `prompt_format`, `auto_outfit`, `allow_raw_prompt`, `vae`, `audio_vae`.
 
-Outputs: original `references`, `tag_mapping`, `compiled_prompt`. The report is also displayed directly on the node. Missing prompt tags are reported while keeping the reference map available. The inspector does not run Qwen, a VAE or diffusion sampling.
+Outputs: original `references`, `tag_mapping`, `compiled_prompt`, `Images`, `Audio`. The report is also displayed directly on the node. Missing prompt tags are reported while keeping the reference map available. The inspector never runs Qwen or diffusion sampling. It only decodes latents when an optional VAE is connected.
 
 ### Older node IDs
 
-**BExplains H3 RefPack Conditioning** (`BExplainsH3RefPackConditioning`) retains its original five outputs. Its optional VAE input enables the new output-intent rules; without it, the older model-based output selection remains. Prefer RefPack to H3 Encoder for new workflows.
+**BExplains H3 RefPack Conditioning** (`BExplainsH3RefPackConditioning`) retains its original five outputs. It also supports Auto/Image/Video selection, with an optional decoding VAE for compatibility checks. Prefer RefPack to H3 Encoder for new workflows.
 
 **BExplains Set H3 Reference Latent** (`BExplainsSetH3ReferenceLatent`) remains available for legacy workflows. It appends an H3 still-reference latent to existing conditioning; it does not add vision inputs to the text encoder or perform the new role-aware prompt compilation.
+
+### Extract media from an inspected RefPack
+
+Connect **Load RefPack → Add RefPack → Inspect**, or connect **Load RefPacks References** directly to an inspector. Both the shared metadata inspector and **BExplains Inspect Refpacks** expose `Images` and `Audio` after their original outputs.
+
+- **Images without `vae`:** returns the stored reference pixels without decoding. H3 video references contain sampled vision frames, not every frame of the source clip.
+- **Images with `vae`:** reconstructs image/video latents using the matching visual VAE. A video entry stays together as one IMAGE batch, suitable for video preview or re-encoding. Use the VAE matching the entries; mixed model-family sets may require inspecting separate sets.
+- **Audio with `audio_vae`:** reconstructs each audio entry through ComfyUI's native audio decoder. The waveform and output sample rate are returned as standard AUDIO data. This is a VAE reconstruction, not the original waveform.
+- **Audio without `audio_vae`:** returns an empty audio list and explains in the report that an audio VAE is needed. Metadata inspection and image extraction still work.
+
+Both VAE inputs are optional. Leave them disconnected for metadata-only inspection or when their decoded output is not needed. `Images` and `Audio` are list outputs: each visual entry retains its dimensions and each audio clip stays separate. Connect them to Preview Image/Preview Audio or the appropriate Refpack encoder; downstream nodes run for each list item. An absent media type produces an empty list, not a fabricated black image or silent clip. Pixels and decoded audio can be re-encoded, but do not recover detail discarded during the original preparation or VAE encoding.
 
 ## Prompting
 
@@ -243,6 +261,7 @@ Character and Item alias counters are independent, while their native Subject ID
 | `subject` | `<Subject n>` | Generic subject definition, without assuming a person |
 | `outfit` | `<Outfit n>` | The outfit group's actual Picture slots |
 | `location` | `<Location n>` | The location group's actual Picture slots |
+| `style` | `<Style n>` | The style group's actual Picture slots |
 | `motion` | `<Motion n>` | The motion group's actual Video slots |
 | `video` | `<Video n>` | Native video slot; numbered across all video entries |
 | `audio` | `<Audio n>` | Native audio slot |
@@ -301,7 +320,7 @@ description:
 <Subject 1> holds <Subject 2> in her hand.
 ```
 
-Raw mode does not expand `<Character n>`, `<Item n>`, `<Motion n>`, `<Outfit n>` or `<Location n>`. Use native Subject/Picture/Video/Audio tags and your own definitions. Verify that the referenced Picture/Video/Audio slots actually exist in the inspector's map.
+Raw mode does not expand `<Character n>`, `<Item n>`, `<Motion n>`, `<Outfit n>`, `<Location n>` or `<Style n>`. Use native Subject/Picture/Video/Audio tags and your own definitions. Verify that the referenced Picture/Video/Audio slots actually exist in the inspector's map.
 
 ### JSON prompts
 
@@ -332,6 +351,18 @@ Video-architecture example:
 
 Enable the same raw toggle in Inspect References to preview exactly what the receiver will use. Inspector text is a preview; it does not automatically update the receiving prompt.
 
+### Style references
+
+Prepare and load an image RefPack, then select **style** on **Add RefPack**. In an H3 shot instruction, write:
+
+```text
+<Character 1> dances in the style of <Style 1>.
+```
+
+If the character occupies Picture 1 and the style pack occupies Picture 2, this becomes `<Subject 1> dances in the style of <Picture 2>.` A style pack with several images expands to all its Picture slots, such as `<Picture 2> and <Picture 3>`. Style numbering is independent of character, item and other role counters. Inspect Refpacks shows the exact mapping. Style references do not create additional Subject IDs or participate in Auto Outfit's wearer selection.
+
+The role accepts images only, uses the existing RefPack file format and survives scene save/load. It guides visual style; it does not train a style LoRA or guarantee a particular rendering. Raw structured prompt passthrough does not expand `<Style n>`; use native `<Picture n>` tags there. The experimental Flux/LTX receivers do not run H3 alias expansion.
+
 ## How it works
 
 Preparation stores cached VAE references plus the vision inputs needed by the native text encoder. Audio preparation stores native audio reference latents and timing metadata.
@@ -343,7 +374,7 @@ For a shot, the receiver:
 3. Compiles the instruction or passes through an allowed raw prompt.
 4. Sends the cached visual inputs and prompt to the native H3 text encoder.
 5. Attaches matching cached VAE reference data to the conditioning.
-6. Allocates the output image/video latent layout for the connected model and VAE intent.
+6. Allocates the output image/video latent layout for the connected model and selected generation mode.
 
 Saving a pack avoids repeated **source VAE encoding**, but each shot still runs its prompt/text-vision encoding and the diffusion model still attends to references. A saved scene file uses the shared format and embeds all required data rather than linking to the individual asset files.
 
@@ -369,7 +400,7 @@ For still output with the video architecture, complete input references remain a
 | Standalone full-encode H3 RefMod import | Limited import; bundles and trained/pooled data are rejected |
 | Other model-family latents | Not interchangeable; recreate with the appropriate VAE |
 
-The current development checks comprise **87 passing CPU tests**, including native-source payload comparisons, saved-set fidelity, typed-role addressing, raw prompt passthrough and batch-wrapper composition. These checks do not establish pretrained-model image quality or performance. No live ComfyUI frontend or pretrained-model GPU generation was performed in that validation environment. See [VALIDATION.md](VALIDATION.md) and [CHANGELOG.md](CHANGELOG.md).
+The current development checks comprise **101 passing CPU tests**, including native-source payload comparisons, saved-set fidelity, typed-role addressing, raw prompt passthrough and batch-wrapper composition. These checks do not establish pretrained-model image quality or performance. No live ComfyUI frontend or pretrained-model GPU generation was performed in that validation environment. See [VALIDATION.md](VALIDATION.md) and [CHANGELOG.md](CHANGELOG.md).
 
 ## Resolution and performance
 
@@ -403,8 +434,8 @@ Weights and media are not bundled. Select locally installed files before running
 | --- | --- |
 | Shared package missing | Install the shared package using the registry command or one of the supported source folder names, then restart ComfyUI. |
 | Nodes absent from search | Check startup errors, restart ComfyUI and refresh the browser. |
-| Image VAE reports many latent frames | Connect the intended decoding VAE to the receiving encoder, then route its VAE output to VAEDecode. The sampler needs a single-frame output layout for an image VAE. |
-| An image request becomes one image | With an image VAE, lengths above 4 deliberately fall back to one. Use 1–4 for the requested batch count. |
+| Image VAE reports many latent frames | Select Image, or Auto with length 1–4, then connect the intended decoding VAE and route its output to VAEDecode. The sampler needs a single-frame output layout for an image VAE. |
+| An image request becomes one image | In explicit Image mode, lengths above 4 deliberately fall back to one. Use 1–4 for the requested batch count. |
 | Dedicated image model rejects a reference | Remove video/audio entries or use the video model architecture where appropriate. |
 | Missing Character/Item/Motion/Picture tag | Inspect actual roles and slot numbering; ordinary instructions are validated against that map. |
 | Compiled prompt rejected | Enable Allow Raw Prompt for structured text or JSON. |
@@ -430,7 +461,7 @@ The implemented native H3 paths share still-image packs without another source V
 
 ### Can I generate a still with the video model?
 
-Yes. Connect a recognized H3 image/still decoder to the receiver. Its VAE determines still intent while the model continues to use its native conditioning and stream layout.
+Yes. Select Image, or Auto with length 1–4, and connect a matching H3 decoder. The model continues to use its native conditioning and stream layout.
 
 ### Can I save the entire cast, stage, outfit and motion setup?
 

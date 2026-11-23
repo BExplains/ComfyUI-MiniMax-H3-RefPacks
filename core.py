@@ -191,7 +191,7 @@ def assemble(references, prompt, task, auto_outfit=True, allow_raw_prompt=False)
     typed_aliases, item_ids, wearer_ids, character_ids = {}, set(), set(), set()
     subjects = subject_numbers(references)
     outfit_labels = set()
-    presentation_order = sorted(enumerate(references["groups"]), key=lambda pair: ({"subject": 0, "character": 0, "item": 0, "outfit": 1, "location": 2, "reference": 3, "video": 4, "motion": 4, "audio":5}[pair[1]["role"]], subjects.get(pair[0], pair[1]["role_id"])))
+    presentation_order = sorted(enumerate(references["groups"]), key=lambda pair: ({"subject": 0, "character": 0, "item": 0, "outfit": 1, "location": 2, "style": 3, "reference": 3, "video": 4, "motion": 4, "audio":5}[pair[1]["role"]], subjects.get(pair[0], pair[1]["role_id"])))
     for gi, g in presentation_order:
         ls = [labels[(gi, ei)] for ei in range(len(g["entries"]))]
         report.append(f"{g['role']} {g['role_id']}: {g['name']} -> {', '.join(ls)}")
@@ -225,6 +225,11 @@ def assemble(references, prompt, task, auto_outfit=True, allow_raw_prompt=False)
             location_aliases[alias] = "the location shown in " + " and ".join(ls)
             report[-1] = f"{alias}: {g['name']} -> {', '.join(ls)}"
             definitions.append(f"{' and '.join(ls)} defines the same location, environment and architecture.")
+        elif g["role"] == "style":
+            alias = f"<Style {g['role_id']}>"
+            typed_aliases[alias] = " and ".join(ls)
+            report[-1] = f"{alias}: {g['name']} -> {', '.join(ls)}"
+            definitions.append(f"{' and '.join(ls)} supplies the visual style reference; use its aesthetic, colors, lighting and rendering style as requested, without defining an additional subject.")
         elif g["role"] in ("video", "motion"):
             if g["role"] == "motion":
                 alias = f"<Motion {g['role_id']}>"
@@ -249,7 +254,7 @@ def assemble(references, prompt, task, auto_outfit=True, allow_raw_prompt=False)
     explicit_outfit = any(alias in text for alias in outfit_aliases) or any(label in text for label in outfit_labels)
     for alias, actual in {**typed_aliases, **outfit_aliases, **location_aliases}.items():
         text = text.replace(alias, actual)
-    unknown_role = re.search(r"<(Character|Item|Motion|Outfit|Location) \d+>", text)
+    unknown_role = re.search(r"<(Character|Item|Motion|Outfit|Location|Style) \d+>", text)
     if unknown_role:
         raise ValueError(f"Prompt refers to missing {unknown_role.group(0)}. Check the reference map.")
     if auto_outfit and len(outfit_aliases) == 1 and len(wearer_ids) == 1 and not explicit_outfit:

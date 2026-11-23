@@ -13,6 +13,7 @@ from .core import FORMAT, VERSION, add_pack, assemble, attach_refs, model_target
 from .duration import h3_duration_frames
 from .batching import enable_image_batches
 from bexplains_refpacks.storage import load_pack, save_pack
+from bexplains_refpacks.media import extract_media
 from .diagnostics import log, reference_stats, profile_model
 from bexplains_refpacks.nodes import ROOT, _path, _files, BExplainsSaveRefPack, BExplainsLoadRefPack, BExplainsAddRefPack, BExplainsRefPacksPreviewText
 from .legacy import NODE_CLASS_MAPPINGS as LEGACY_CLASSES, NODE_DISPLAY_NAME_MAPPINGS as LEGACY_NAMES
@@ -251,28 +252,35 @@ class BExplainsH3RefPackConditioning:
                              "width": ("INT", {"default": 768, "min": 64, "max": 8192, "step": 8}),
                              "height": ("INT", {"default": 448, "min": 64, "max": 8192, "step": 8}),
                              "length": ("INT", {"default": 175, "min": 1, "max": 4096,
-                                                  "tooltip": "Image VAE: 1-4 creates that many independent batch images; greater than 4 falls back to one image. Video VAE: output frames, rounded up to 17n+5 at 24 fps."}),
+                                                  "tooltip": "Auto: 1-4 means independent images; 5+ means video frames. Video rounds up to 17n+5 at 24 fps, with a minimum of 5 frames. Image mode uses 1-4 images; larger lengths produce one image."}),
                              "auto_outfit": ("BOOLEAN", {"default": True})},
                 "optional": {"vae": ("VAE",), "log_performance": ("BOOLEAN", {"default": True,
                     "tooltip": "Log reference sizes, text/vision encoding time and sampling time to the ComfyUI console. Does not alter reference tensors or sampling parameters."}),
                     "compress_motion": ("BOOLEAN", {"default": False,
                         "tooltip": "Off: use the leading reference window, capped at output length, like native H3. On: present the complete reference even for a shorter output; H3 may condense the routine. This is not deterministic retiming."}),
                     "allow_raw_prompt": ("BOOLEAN", {"default": False,
-                        "tooltip": "Allow structured H3 section prompts or JSON with H3 section keys to pass through exactly as entered. Skips prompt expansion, aliases, auto-outfit and prompt tag checks. Plain shot instructions still compile normally; reference tensors remain attached."})}}
+                        "tooltip": "Allow structured H3 section prompts or JSON with H3 section keys to pass through exactly as entered. Skips prompt expansion, aliases, auto-outfit and prompt tag checks. Plain shot instructions still compile normally; reference tensors remain attached."}),
+                    "generation_mode": (["Auto", "Image", "Video"], {"default": "Auto",
+                        "tooltip": "Auto: length 1-4 generates that many independent images; length 5+ generates video. Video mode requires an H3 video model and video-capable decoder; length is rounded up to 17n+5 at 24 fps, with 5 frames minimum (even when length is 1-4). Image mode forces still output: length 1-4 is the image batch count; larger lengths produce one image. The VAE no longer selects the mode."})}}
     RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "STRING")
     RETURN_NAMES = ("model", "positive", "negative", "latent", "reference_map_and_prompt")
     FUNCTION = "compile"
     CATEGORY = CATEGORY
     DESCRIPTION = "Assemble all references before fresh prompt encoding. Present cached images/video frames to H3's text encoder and attach the matching cached VAE latents. No VAE runs here."
 
-    def compile(self, model, clip, references, prompt, negative_prompt, width, height, length, auto_outfit, log_performance=True, compress_motion=False, vae=None, allow_raw_prompt=False):
+    def compile(self, model, clip, references, prompt, negative_prompt, width, height, length, auto_outfit, log_performance=True, compress_motion=False, vae=None, allow_raw_prompt=False, generation_mode="Auto"):
         started = time.perf_counter()
         task = model_target(model)
-        # Architecture chooses conditioning; the decoding VAE chooses output intent.
-        intent = _vae_target(vae) if vae is not None else task
         fallback = ""
         if not isinstance(length, int) or length < 1:
             raise ValueError("Length must be a positive integer.")
+        if generation_mode not in ("Auto", "Image", "Video"):
+            raise ValueError("Generation mode must be Auto, Image or Video.")
+        intent = "h3_image" if generation_mode == "Image" or (generation_mode == "Auto" and length <= 4) else "h3_video"
+        if vae is not None:
+            decoder_intent = _vae_target(vae)
+            if intent == "h3_video" and decoder_intent == "h3_image":
+                raise ValueError("Video output requires an H3 Video VAE. Connect a video decoder or select Image mode.")
         if width < 64 or height < 64 or width % 16 or height % 16:
             raise ValueError("H3 output width and height must be multiples of 16 (at least 64).")
         for group in references.get("groups", []):
@@ -281,7 +289,7 @@ class BExplainsH3RefPackConditioning:
                 raise ValueError(f"Pack '{group['name']}' is for {family}. Re-encode it using an H3 VAE.")
         if intent == "h3_video":
             if task == "h3_image":
-                raise ValueError("The H3 Image model cannot generate video. Connect an image VAE or an H3 video model.")
+                raise ValueError("The H3 Image model cannot generate video. Select Image mode (or Auto with length 1-4), or connect an H3 video model.")
             from comfy_extras.nodes_minimax_h3 import _empty_av_latent
             latent, actual_length = _empty_av_latent(width,height,length)
             references = reference_window(references,actual_length,compress_motion)
@@ -290,7 +298,7 @@ class BExplainsH3RefPackConditioning:
             batch_size = length if length <= 4 else 1
             actual_length = 1
             if length > 4:
-                fallback = f"Image VAE selected: length {length} exceeds the 4-image limit; generating one image."
+                fallback = f"Image mode selected: length {length} exceeds the 4-image limit; generating one image."
                 log(fallback)
             if task == "h3_video":
                 # The video architecture still requires its audio stream. Each batch item
@@ -328,7 +336,7 @@ class BExplainsH3RefPackConditioning:
         negative = clip.encode_from_tokens_scheduled(clip.tokenize(negative_prompt))
         negative_encoded = time.perf_counter()
         duration = f" ({actual_length / 24.0:.3f} seconds at 24 fps)" if intent == "h3_video" else ""
-        details = mapping + f"\n\nConditioning architecture: {task}; output intent: {intent}; batch size: {batch_size}; output frames: {actual_length}{duration}; canvas: {width//16*16}x{height//16*16}\n\n" + compiled
+        details = mapping + f"\n\nGeneration mode: {generation_mode}; conditioning architecture: {task}; output intent: {intent}; batch size: {batch_size}; output frames: {actual_length}{duration}; canvas: {width//16*16}x{height//16*16}\n\n" + compiled
         if fallback:
             details += "\n" + fallback
         if log_performance:
@@ -353,11 +361,11 @@ class BExplainsRefPackToH3(BExplainsH3RefPackConditioning):
         return schema
     RETURN_TYPES = BExplainsH3RefPackConditioning.RETURN_TYPES + ("VAE",)
     RETURN_NAMES = BExplainsH3RefPackConditioning.RETURN_NAMES + ("vae",)
-    DESCRIPTION = "H3 receiver: the decoding VAE selects image or video intent. Image lengths 1-4 are independent batch items with T=1; greater lengths fall back to one image. The model still selects native conditioning format. Connect the VAE output to VAEDecode."
+    DESCRIPTION = "H3 receiver: Auto selects images for length 1-4 and video for length 5+. Image/Video explicitly overrides Auto. Image lengths 1-4 are independent batch items with T=1; greater lengths fall back to one image. The model still selects native conditioning format. Connect the VAE output to VAEDecode."
 
-    def compile(self, model, clip, references, prompt, negative_prompt, width, height, length, auto_outfit, vae, log_performance=True, compress_motion=False, allow_raw_prompt=False):
+    def compile(self, model, clip, references, prompt, negative_prompt, width, height, length, auto_outfit, vae, log_performance=True, compress_motion=False, allow_raw_prompt=False, generation_mode="Auto"):
         result = super().compile(model, clip, references, prompt, negative_prompt, width, height, length, auto_outfit,
-                                 log_performance=log_performance, compress_motion=compress_motion, vae=vae, allow_raw_prompt=allow_raw_prompt)
+                                 log_performance=log_performance, compress_motion=compress_motion, vae=vae, allow_raw_prompt=allow_raw_prompt, generation_mode=generation_mode)
         return result + (vae,)
 
 
@@ -369,15 +377,18 @@ class BExplainsInspectRefPacks:
                     "tooltip":"Optional shot instruction. Leave empty to inspect only the tag map, even before writing a valid prompt."}),
                     "prompt_format":(["H3 Video","H3 Image"],{"tooltip":"Only controls the optional compiled prompt preview; no model or text encoder is loaded."}),
                     "auto_outfit":("BOOLEAN",{"default":True}),
-                    "allow_raw_prompt":("BOOLEAN",{"default":False, "tooltip":"Match Allow Raw Prompt on the H3 encoder to preview the exact structured prompt without expansion."})}}
-    RETURN_TYPES = (SET_TYPE,"STRING","STRING")
-    RETURN_NAMES = ("references","tag_mapping","compiled_prompt")
+                    "allow_raw_prompt":("BOOLEAN",{"default":False, "tooltip":"Match Allow Raw Prompt on the H3 encoder to preview the exact structured prompt without expansion."}),
+                    "vae":("VAE",{"tooltip":"Matching image/video VAE to reconstruct full visual latents; omit to return cached reference pixels."}),
+                    "audio_vae":("VAE",{"tooltip":"Matching H3 audio VAE for reconstructing stored audio."})}}
+    RETURN_TYPES = (SET_TYPE,"STRING","STRING","IMAGE","AUDIO")
+    RETURN_NAMES = ("references","tag_mapping","compiled_prompt","Images","Audio")
+    OUTPUT_IS_LIST = (False,False,False,True,True)
     FUNCTION = "inspect"
     CATEGORY = CATEGORY
     OUTPUT_NODE = True
     DESCRIPTION = "Inspect every Picture/Video/Audio slot and its source pack before text encoding. Run only this node to avoid downstream encoding/sampling. Optional prompt preview uses the same compiler; match prompt format and auto_outfit to the conditioning node."
 
-    def inspect(self,references,prompt="",prompt_format="H3 Video",auto_outfit=True,allow_raw_prompt=False):
+    def inspect(self,references,prompt="",prompt_format="H3 Video",auto_outfit=True,allow_raw_prompt=False,audio_vae=None,vae=None):
         layout=list(reference_layout(references))
         lines=["REFERENCE TAG MAP — native presentation order", ""]
         for gi,ei,e,label in layout:
@@ -388,7 +399,7 @@ class BExplainsInspectRefPacks:
         subjects = subject_numbers(references)
         for gi,g in enumerate(references['groups']):
             tags=[label for index,_,_,label in layout if index == gi]
-            alias={"subject":"Subject","character":"Character","item":"Item","motion":"Motion","outfit":"Outfit","location":"Location"}.get(g['role'])
+            alias={"subject":"Subject","character":"Character","item":"Item","motion":"Motion","outfit":"Outfit","location":"Location","style":"Style"}.get(g['role'])
             title=f"<{alias} {g['role_id']}>" if alias else f"{g['role']} {g['role_id']}"
             subject = f"<Subject {subjects[gi]}> -> " if g["role"] in ("character", "item") else ""
             lines.append(f"{title} -> {subject}{', '.join(tags)}")
@@ -405,7 +416,9 @@ class BExplainsInspectRefPacks:
             except ValueError as error:
                 preview_error=f"\n\nPROMPT PREVIEW ERROR: {error}\nThe tag map above remains available; correct the prompt and inspect again."
         display=mapping + (preview_error or (f"\n\nCOMPILED PROMPT PREVIEW ({prompt_format})\n{compiled}" if compiled else "\n\nAdd an optional prompt to preview its compiled form. No text encoder has run."))
-        return {"ui":{"text":[display]},"result":(references,mapping,compiled)}
+        images,audio,media_report=extract_media(references,audio_vae,vae)
+        display += "\n\n" + media_report
+        return {"ui":{"text":[display]},"result":(references,mapping,compiled,images,audio)}
 
 
 
@@ -426,7 +439,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {**LEGACY_NAMES,
     "BExplainsAddRefPack": "BExplains Add RefPack",
     "BExplainsH3RefPackConditioning": "BExplains H3 RefPack Conditioning",
     "BExplainsRefPacksPreviewText": "BExplains RefPacks Preview Text",
-    "BExplainsInspectRefPacks": "BExplains Inspect References",
+    "BExplainsInspectRefPacks": "BExplains Inspect Refpacks",
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {k: v for k, v in NODE_DISPLAY_NAME_MAPPINGS.items() if k in NODE_CLASS_MAPPINGS}
