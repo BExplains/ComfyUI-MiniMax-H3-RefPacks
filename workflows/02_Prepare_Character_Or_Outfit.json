@@ -1,8 +1,8 @@
 {
   "id": "7a107658-0eb0-4aa9-8036-67fa46d8b7cd",
   "revision": 2,
-  "last_node_id": 5,
-  "last_link_id": 3,
+  "last_node_id": 7,
+  "last_link_id": 5,
   "nodes": [
     {
       "id": 1,
@@ -32,8 +32,11 @@
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
-        "SELECT_H3_VIDEO_VAE.safetensors"
-      ]
+        "minimax_h3_image_vae_fp16.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_image_vae_fp16.safetensors"
+      }
     },
     {
       "id": 2,
@@ -44,7 +47,7 @@
       ],
       "size": [
         340,
-        115
+        314
       ],
       "flags": {},
       "order": 1,
@@ -68,9 +71,13 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "character.png",
+        "example.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "example.png",
+        "upload": "image"
+      }
     },
     {
       "id": 3,
@@ -84,7 +91,7 @@
         145
       ],
       "flags": {},
-      "order": 2,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
@@ -96,6 +103,14 @@
           "name": "images",
           "type": "IMAGE",
           "link": 2
+        },
+        {
+          "name": "name",
+          "type": "STRING",
+          "widget": {
+            "name": "name"
+          },
+          "link": 4
         }
       ],
       "outputs": [
@@ -113,7 +128,11 @@
       "widgets_values": [
         "character",
         0.3
-      ]
+      ],
+      "widgets_values_named": {
+        "name": "character",
+        "reference_megapixels": 0.3
+      }
     },
     {
       "id": 4,
@@ -127,13 +146,21 @@
         115
       ],
       "flags": {},
-      "order": 3,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
           "name": "refpack",
           "type": "BEXPLAINS_REFPACK",
           "link": 3
+        },
+        {
+          "name": "filename",
+          "type": "STRING",
+          "widget": {
+            "name": "filename"
+          },
+          "link": 5
         }
       ],
       "outputs": [
@@ -154,30 +181,76 @@
       "widgets_values": [
         "character",
         false
-      ]
+      ],
+      "widgets_values_named": {
+        "filename": "character",
+        "overwrite": false
+      }
     },
     {
-      "id": 5,
-      "type": "Note",
+      "id": 6,
+      "type": "PrimitiveString",
       "pos": [
-        0,
-        530
+        4.841150584952111,
+        -152.80025759364622
       ],
       "size": [
-        340,
-        100
+        270,
+        58
       ],
       "flags": {},
-      "order": 4,
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            4,
+            5
+          ]
+        }
+      ],
+      "title": "Set RefPack Name",
+      "properties": {
+        "Node name for S&R": "PrimitiveString"
+      },
+      "widgets_values": [
+        "example.character"
+      ],
+      "widgets_values_named": {
+        "value": "example.character"
+      }
+    },
+    {
+      "id": 7,
+      "type": "MarkdownNote",
+      "pos": [
+        -542.782011377052,
+        -155.2871095846304
+      ],
+      "size": [
+        390.74321621278796,
+        519.7877779620828
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 3,
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "properties": {
-        "Node name for S&R": "Note"
-      },
+      "title": "Note: Creating RefPacks Example",
+      "properties": {},
       "widgets_values": [
-        "PREPARE ONCE. Select either native H3 Image or Video VAE, load a character sheet or image, then Run. The file is saved in models/refpacks/. For more views, batch images with the stock Image Batch node before Encode H3 Image Refpack; each batch image gets a separate Picture slot.\n\nFor an outfit, use a single outfit image and set both name + filename to outfit (.safetensors is automatic). For a replacement character use another filename, e.g. mai_concert.safetensors.\n\nThe VAE preparation is detected automatically. The resulting still-image pack works with both H3 Image and H3 Ref2VA. Filename collisions stop unless overwrite is enabled.\n\nRoles are numbered automatically within each role; there is no role ID field. Outfit and Location tags are aliases resolved to native picture slots before encoding. To use a location, prepare location.safetensors, enable its loader, and add at <Location 1> to the prompt.\nStill-image packs are shared across H3 Image and Ref2VA. Reuse the same character/outfit/location file; no target selection or second encode. Motion packs remain video-only."
-      ]
+        "Hint: To use multiple images for a RefPack, batch them together with a Batch Images node first, then send the output to the images input on the Encode H3 Image Refpack node.\n"
+      ],
+      "widgets_values_named": {
+        "text": "Hint: To use multiple images for a RefPack, batch them together with a Batch Images node first, then send the output to the images input on the Encode H3 Image Refpack node.\n"
+      },
+      "color": "#222",
+      "bgcolor": "#000"
     }
   ],
   "links": [
@@ -204,18 +277,39 @@
       4,
       0,
       "BEXPLAINS_REFPACK"
+    ],
+    [
+      4,
+      6,
+      0,
+      3,
+      2,
+      "STRING"
+    ],
+    [
+      5,
+      6,
+      0,
+      4,
+      1,
+      "STRING"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7,
+      "scale": 0.9317000000000002,
       "offset": [
-        60,
-        60
+        644.7461629279801,
+        417.1739830417519
       ]
-    }
+    },
+    "frontendVersion": "1.58.0",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }

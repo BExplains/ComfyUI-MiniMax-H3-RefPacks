@@ -9,13 +9,34 @@ from safetensors import safe_open
 
 import folder_paths
 
-from .core import FORMAT, VERSION, add_pack, assemble, attach_refs, model_target, validate_latent, validate_audio_latent, validate_pack, reference_window, reference_layout, subject_numbers
+from .core import (
+    FORMAT,
+    VERSION,
+    add_pack,
+    assemble,
+    attach_refs,
+    model_target,
+    validate_latent,
+    validate_audio_latent,
+    validate_pack,
+    reference_window,
+    reference_layout,
+    subject_numbers,
+)
 from .duration import h3_duration_frames
 from .batching import enable_image_batches
 from bexplains_refpacks.storage import load_pack, save_pack
 from bexplains_refpacks.media import extract_media
 from .diagnostics import log, reference_stats, profile_model
-from bexplains_refpacks.nodes import ROOT, _path, _files, BExplainsSaveRefPack, BExplainsLoadRefPack, BExplainsAddRefPack, BExplainsRefPacksPreviewText
+from bexplains_refpacks.nodes import (
+    ROOT,
+    _path,
+    _files,
+    BExplainsSaveRefPack,
+    BExplainsLoadRefPack,
+    BExplainsAddRefPack,
+    BExplainsRefPacksPreviewText,
+)
 from .legacy import NODE_CLASS_MAPPINGS as LEGACY_CLASSES, NODE_DISPLAY_NAME_MAPPINGS as LEGACY_NAMES
 
 CATEGORY = "BExplains/RefPacks/H3"
@@ -336,7 +357,14 @@ class BExplainsH3RefPackConditioning:
         negative = clip.encode_from_tokens_scheduled(clip.tokenize(negative_prompt))
         negative_encoded = time.perf_counter()
         duration = f" ({actual_length / 24.0:.3f} seconds at 24 fps)" if intent == "h3_video" else ""
-        details = mapping + f"\n\nGeneration mode: {generation_mode}; conditioning architecture: {task}; output intent: {intent}; batch size: {batch_size}; output frames: {actual_length}{duration}; canvas: {width//16*16}x{height//16*16}\n\n" + compiled
+        details = mapping + (
+            f"\n\nGeneration mode: {generation_mode}\n"
+            f"conditioning architecture: {task}\n"
+            f"output intent: {intent}\n"
+            f"batch size: {batch_size}\n"
+            f"output frames: {actual_length}{duration}\n"
+            f"canvas: {width//16*16}x{height//16*16}\n\n"
+        ) + compiled
         if fallback:
             details += "\n" + fallback
         if log_performance:

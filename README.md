@@ -417,8 +417,8 @@ The current development checks comprise **101 passing CPU tests**, including nat
 
 | Workflow | Purpose |
 | --- | --- |
-| [01 H3 Dance From RefPacks](workflows/01_H3_Dance_From_RefPacks.json) | Character and motion reference generation |
-| [02 Prepare Character Or Outfit](workflows/02_Prepare_Character_Or_Outfit.json) | Still-image preparation and saving |
+| [01 H3 Dance From RefPacks](workflows/01_H3_Dance_From_RefPacks.json) | Character and motion reference generation with resolution, seed, duration and LoRA controls; current inspector and generation-mode sockets |
+| [02 Prepare Character Or Outfit](workflows/02_Prepare_Character_Or_Outfit.json) | Still-image preparation and saving with a shared name input |
 | [03 Prepare Dance Video](workflows/03_Prepare_Dance_Video.json) | Video preparation and saving |
 | [04 H3 Image From RefPacks](workflows/04_H3_Image_From_RefPacks.json) | Image-model generation using saved references |
 | [05 Prepare Audio](workflows/05_Prepare_Audio.json) | Standalone audio reference preparation |

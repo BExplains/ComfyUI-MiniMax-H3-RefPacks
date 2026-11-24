@@ -1,15 +1,15 @@
 {
   "id": "109b52cd-9e4e-416b-bb18-df9d6b443fdb",
   "revision": 3,
-  "last_node_id": 18,
-  "last_link_id": 20,
+  "last_node_id": 28,
+  "last_link_id": 32,
   "nodes": [
     {
       "id": 1,
       "type": "UNETLoader",
       "pos": [
-        0,
-        0
+        -3.63600261496578,
+        -189.33150545922817
       ],
       "size": [
         340,
@@ -24,18 +24,22 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            6
+            31
           ]
         }
       ],
+      "title": "Load Model",
       "properties": {
         "Node name for S&R": "UNETLoader"
       },
       "widgets_values": [
-        "SELECT_H3_REF2VA_MODEL.safetensors",
+        "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
         "default"
       ],
-      "title": "Select your H3 Ref2VA video model"
+      "widgets_values_named": {
+        "unet_name": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 2,
@@ -65,10 +69,15 @@
         "Node name for S&R": "CLIPLoader"
       },
       "widgets_values": [
-        "SELECT_H3_QWEN3VL_ENCODER.safetensors",
+        "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
         "minimax",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
     },
     {
       "id": 3,
@@ -98,15 +107,18 @@
         "Node name for S&R": "VAELoader"
       },
       "widgets_values": [
-        "SELECT_H3_VIDEO_VAE.safetensors"
-      ]
+        "minimax_h3_video_vae_int8_convrot.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+      }
     },
     {
       "id": 4,
       "type": "BExplainsLoadRefPack",
       "pos": [
-        430,
-        0
+        400.6142857142862,
+        3.998185714287132
       ],
       "size": [
         340,
@@ -125,6 +137,7 @@
           ]
         }
       ],
+      "title": "video: dance.safetensors",
       "properties": {
         "Node name for S&R": "BExplainsLoadRefPack"
       },
@@ -132,21 +145,24 @@
         "dance.safetensors",
         true
       ],
-      "title": "video: dance.safetensors"
+      "widgets_values_named": {
+        "filename": "dance.safetensors",
+        "enabled": true
+      }
     },
     {
       "id": 5,
       "type": "BExplainsAddRefPack",
       "pos": [
-        830,
-        0
+        800.6142857142864,
+        3.998185714287132
       ],
       "size": [
         340,
         115
       ],
       "flags": {},
-      "order": 4,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -156,6 +172,7 @@
         },
         {
           "name": "references",
+          "shape": 7,
           "type": "BEXPLAINS_REFERENCES",
           "link": null
         }
@@ -174,21 +191,24 @@
       },
       "widgets_values": [
         "video"
-      ]
+      ],
+      "widgets_values_named": {
+        "role": "video"
+      }
     },
     {
       "id": 6,
       "type": "BExplainsLoadRefPack",
       "pos": [
-        430,
-        220
+        400.6142857142862,
+        223.99818571428676
       ],
       "size": [
         340,
         115
       ],
       "flags": {},
-      "order": 5,
+      "order": 4,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -200,28 +220,32 @@
           ]
         }
       ],
+      "title": "subject: character.safetensors",
       "properties": {
         "Node name for S&R": "BExplainsLoadRefPack"
       },
       "widgets_values": [
-        "character.safetensors",
+        "Mai-Test.safetensors",
         true
       ],
-      "title": "subject: character.safetensors"
+      "widgets_values_named": {
+        "filename": "Mai-Test.safetensors",
+        "enabled": true
+      }
     },
     {
       "id": 7,
       "type": "BExplainsAddRefPack",
       "pos": [
-        830,
-        220
+        800.6142857142864,
+        223.99818571428676
       ],
       "size": [
         340,
         115
       ],
       "flags": {},
-      "order": 6,
+      "order": 14,
       "mode": 0,
       "inputs": [
         {
@@ -231,6 +255,7 @@
         },
         {
           "name": "references",
+          "shape": 7,
           "type": "BEXPLAINS_REFERENCES",
           "link": 3
         }
@@ -249,21 +274,24 @@
       },
       "widgets_values": [
         "subject"
-      ]
+      ],
+      "widgets_values_named": {
+        "role": "subject"
+      }
     },
     {
       "id": 8,
       "type": "BExplainsLoadRefPack",
       "pos": [
-        430,
-        440
+        400.6142857142862,
+        443.99818571428307
       ],
       "size": [
-        340,
+        360.108984375,
         115
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -275,6 +303,7 @@
           ]
         }
       ],
+      "title": "outfit: outfit.safetensors (enable when prepared)",
       "properties": {
         "Node name for S&R": "BExplainsLoadRefPack"
       },
@@ -282,21 +311,24 @@
         "outfit.safetensors",
         false
       ],
-      "title": "outfit: outfit.safetensors (enable when prepared)"
+      "widgets_values_named": {
+        "filename": "outfit.safetensors",
+        "enabled": false
+      }
     },
     {
       "id": 9,
       "type": "BExplainsAddRefPack",
       "pos": [
-        830,
-        440
+        800.6142857142864,
+        443.99818571428307
       ],
       "size": [
         340,
         115
       ],
       "flags": {},
-      "order": 8,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -306,6 +338,7 @@
         },
         {
           "name": "references",
+          "shape": 7,
           "type": "BEXPLAINS_REFERENCES",
           "link": 5
         }
@@ -324,27 +357,30 @@
       },
       "widgets_values": [
         "outfit"
-      ]
+      ],
+      "widgets_values_named": {
+        "role": "outfit"
+      }
     },
     {
       "id": 10,
       "type": "BExplainsRefPackToH3",
       "pos": [
-        1240,
-        40
+        1224.3882638773696,
+        0.9706596934246222
       ],
       "size": [
         480,
         430
       ],
       "flags": {},
-      "order": 9,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 6
+          "link": 32
         },
         {
           "name": "clip",
@@ -360,6 +396,30 @@
           "name": "vae",
           "type": "VAE",
           "link": 20
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 27
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 28
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": 29
         }
       ],
       "outputs": [
@@ -420,21 +480,33 @@
         false,
         false,
         "Auto"
-      ]
+      ],
+      "widgets_values_named": {
+        "prompt": "<Subject 1> performs the moves in <Video 1>",
+        "negative_prompt": "",
+        "width": 768,
+        "height": 448,
+        "length": 175,
+        "auto_outfit": true,
+        "log_performance": true,
+        "compress_motion": false,
+        "allow_raw_prompt": false,
+        "generation_mode": "Auto"
+      }
     },
     {
       "id": 11,
       "type": "KSampler",
       "pos": [
-        1810,
-        20
+        1805.1213324616774,
+        1.461063354376694
       ],
       "size": [
         340,
         265
       ],
       "flags": {},
-      "order": 10,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -456,6 +528,14 @@
           "name": "latent_image",
           "type": "LATENT",
           "link": 12
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 30
         }
       ],
       "outputs": [
@@ -463,7 +543,8 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            13
+            13,
+            21
           ]
         }
       ],
@@ -473,12 +554,21 @@
       "widgets_values": [
         12345,
         "fixed",
-        6,
-        1.0,
+        4,
+        1,
         "euler",
         "simple",
-        1.0
-      ]
+        1
+      ],
+      "widgets_values_named": {
+        "seed": 12345,
+        "control_after_generate": "fixed",
+        "steps": 4,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1
+      }
     },
     {
       "id": 12,
@@ -492,7 +582,7 @@
         100
       ],
       "flags": {},
-      "order": 11,
+      "order": 21,
       "mode": 0,
       "inputs": [
         {
@@ -511,66 +601,28 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            15
+            23,
+            24
           ]
         }
       ],
       "properties": {
         "Node name for S&R": "VAEDecode"
-      },
-      "widgets_values": []
-    },
-    {
-      "id": 13,
-      "type": "SaveWEBM",
-      "pos": [
-        2600,
-        20
-      ],
-      "size": [
-        340,
-        175
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 15
-        }
-      ],
-      "outputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "links": []
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "SaveWEBM"
-      },
-      "widgets_values": [
-        "video/BExplains_RefPacks",
-        "vp9",
-        24.0,
-        24
-      ]
+      }
     },
     {
       "id": 14,
       "type": "BExplainsRefPacksPreviewText",
       "pos": [
-        1790,
-        460
+        1792.146613716862,
+        540.4980143823117
       ],
       "size": [
-        340,
-        100
+        480,
+        180
       ],
       "flags": {},
-      "order": 13,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -588,45 +640,21 @@
       ],
       "properties": {
         "Node name for S&R": "BExplainsRefPacksPreviewText"
-      },
-      "widgets_values": []
-    },
-    {
-      "id": 15,
-      "type": "Note",
-      "pos": [
-        0,
-        640
-      ],
-      "size": [
-        340,
-        100
-      ],
-      "flags": {},
-      "order": 14,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {
-        "Node name for S&R": "Note"
-      },
-      "widgets_values": [
-        "H3 VIDEO ONLY. First prepare dance.safetensors and character.safetensors using workflows 02 and 03. Select your own model/CLIP/VAE files. VIDEO MODEL MUST BE REF2VA. The sampler defaults to 6 steps / CFG 1 for a compatible fast checkpoint or your existing acceleration setup; use your known working sampling settings for the chosen checkpoint. No acceleration LoRA is included. For a base checkpoint start around 20-30 steps using its recommended CFG.\n\nSwap only the character filename to replace Subject 1. For an outfit, create outfit.safetensors, enable its loader and leave auto_outfit enabled; alternatively put <Outfit 1> or <Picture N> in the prompt.\n\nThe text preview displays the exact reference map and compiled prompt. Full reference-conditioned text encoding runs for each distinct assembled set. VAE encoding of references does not run during rendering. Vision frames are inside the files. This is not a promise of exact choreography; inspect the result.\n\nOUTPUT LENGTH: Set length on H3 RefPack Conditioning independently of reference lengths. 72 requested frames becomes 73 (3.042 seconds at 24 fps). By default, reference videos use their leading segment up to the output duration. Enable Compress Motion to keep the complete source routines. Different reference lengths are supported.\n\nRoles are numbered automatically within each role; there is no role ID field. Outfit and Location tags are aliases resolved to native picture slots before encoding. To use a location, prepare location.safetensors, enable its loader, and add at <Location 1> to the prompt.\nStill-image packs are shared across H3 Image and Ref2VA. Reuse the same character/outfit/location file; no target selection or second encode. Motion packs remain video-only."
-      ]
+      }
     },
     {
       "id": 16,
       "type": "BExplainsLoadRefPack",
       "pos": [
-        430,
-        680
+        400.6142857142862,
+        683.9981857142839
       ],
       "size": [
         340,
         120
       ],
       "flags": {},
-      "order": 15,
+      "order": 6,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -638,6 +666,7 @@
           ]
         }
       ],
+      "title": "location: location.safetensors (optional)",
       "properties": {
         "Node name for S&R": "BExplainsLoadRefPack"
       },
@@ -645,14 +674,17 @@
         "location.safetensors",
         false
       ],
-      "title": "location: location.safetensors (optional)"
+      "widgets_values_named": {
+        "filename": "location.safetensors",
+        "enabled": false
+      }
     },
     {
       "id": 17,
       "type": "BExplainsAddRefPack",
       "pos": [
-        830,
-        680
+        800.6142857142864,
+        683.9981857142839
       ],
       "size": [
         340,
@@ -669,6 +701,7 @@
         },
         {
           "name": "references",
+          "shape": 7,
           "type": "BEXPLAINS_REFERENCES",
           "link": 8
         }
@@ -687,7 +720,10 @@
       },
       "widgets_values": [
         "location"
-      ]
+      ],
+      "widgets_values_named": {
+        "role": "location"
+      }
     },
     {
       "id": 18,
@@ -701,7 +737,7 @@
         500
       ],
       "flags": {},
-      "order": 0,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -741,14 +777,17 @@
         {
           "name": "Images",
           "type": "IMAGE",
-          "links": []
+          "links": [],
+          "shape": 6
         },
         {
           "name": "Audio",
           "type": "AUDIO",
-          "links": []
+          "links": [],
+          "shape": 6
         }
       ],
+      "title": "Inspect slots BEFORE text encoding (Run only this node)",
       "properties": {
         "Node name for S&R": "BExplainsInspectRefPacks"
       },
@@ -758,7 +797,403 @@
         true,
         false
       ],
-      "title": "Inspect slots BEFORE text encoding (Run only this node)"
+      "widgets_values_named": {
+        "prompt": "",
+        "prompt_format": "H3 Video",
+        "auto_outfit": true,
+        "allow_raw_prompt": false
+      }
+    },
+    {
+      "id": 19,
+      "type": "MarkdownNote",
+      "pos": [
+        -469.74652243255576,
+        2.9596251409272627
+      ],
+      "size": [
+        390.74321621278796,
+        519.7877779620828
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Note: Getting Started with RefPacks",
+      "properties": {},
+      "widgets_values": [
+        "First, choose your models, clip, and vae first. Any H3 model should work, but starting with the default ComfyUI H3 Ref2VA models can be a good start. You can use LoRAs or bypass the node if you want the stock model.\n\nSecond, create one or more RefPacks. Check the 02_Prepare_Character_Or_Outfit.json workflow for an example. \n\nThird, choose and chain the RefPacks you want to use. Make sure to select the type, such as Character, Outfit, Location, and Motion, depending on what your RefPack does. \n\nFinally, choose a length in frames or use the duration helper node (BExplains H3 Duration). This workflow can produce both images and workflow for H3. Choosing a length below 5 frames will generate images and a length above that produces a video if your generation type is Auto. You can override this behavior in the encoder node. \n\n"
+      ],
+      "widgets_values_named": {
+        "text": "First, choose your models, clip, and vae first. Any H3 model should work, but starting with the default ComfyUI H3 Ref2VA models can be a good start. You can use LoRAs or bypass the node if you want the stock model.\n\nSecond, create one or more RefPacks. Check the 02_Prepare_Character_Or_Outfit.json workflow for an example. \n\nThird, choose and chain the RefPacks you want to use. Make sure to select the type, such as Character, Outfit, Location, and Motion, depending on what your RefPack does. \n\nFinally, choose a length in frames or use the duration helper node (BExplains H3 Duration). This workflow can produce both images and workflow for H3. Choosing a length below 5 frames will generate images and a length above that produces a video if your generation type is Auto. You can override this behavior in the encoder node. \n\n"
+      },
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 20,
+      "type": "VAEDecodeAudio",
+      "pos": [
+        2207.733740123179,
+        166.31492588771803
+      ],
+      "size": [
+        329.52812338584715,
+        127.46399055489962
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 21
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecodeAudio"
+      }
+    },
+    {
+      "id": 21,
+      "type": "VAELoader",
+      "pos": [
+        4.817404118345131,
+        529.788644400114
+      ],
+      "size": [
+        331.5789741876848,
+        58
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "title": "Load Audio VAE",
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "minimax_h3_audio_vae_fp32.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    },
+    {
+      "id": 22,
+      "type": "PreviewImage",
+      "pos": [
+        3081.3162277236033,
+        -302.1861879739049
+      ],
+      "size": [
+        436.6229863299727,
+        266.0304428854386
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 23,
+      "type": "CreateVideo",
+      "pos": [
+        2697.002403708499,
+        19.805869555341772
+      ],
+      "size": [
+        284.158203125,
+        174
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 24
+        },
+        {
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": 25
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            26
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CreateVideo"
+      },
+      "widgets_values": [
+        24,
+        "auto",
+        "sRGB",
+        "auto",
+        "none"
+      ],
+      "widgets_values_named": {
+        "fps": 24,
+        "bit_depth": "auto",
+        "color_space": "sRGB",
+        "chroma_subsampling": "auto",
+        "codec": "none"
+      }
+    },
+    {
+      "id": 24,
+      "type": "SaveVideo",
+      "pos": [
+        3083.6418397524444,
+        22.733070078334954
+      ],
+      "size": [
+        430.99602876462313,
+        279.6805643642605
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 26
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/ComfyUI",
+        "auto",
+        "auto",
+        "auto"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "video/ComfyUI",
+        "format": "auto",
+        "format.codec": "auto",
+        "codec": "auto"
+      }
+    },
+    {
+      "id": 25,
+      "type": "ResolutionSelector",
+      "pos": [
+        1237.3740982326567,
+        597.6952836474561
+      ],
+      "size": [
+        270,
+        150
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            27
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            28
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ResolutionSelector"
+      },
+      "widgets_values": [
+        "16:9 (Widescreen)",
+        0.4,
+        32
+      ],
+      "widgets_values_named": {
+        "aspect_ratio": "16:9 (Widescreen)",
+        "megapixels": 0.4,
+        "multiple": 32
+      }
+    },
+    {
+      "id": 26,
+      "type": "BExplainsH3Duration",
+      "pos": [
+        1239.2402710379063,
+        483.58572408131863
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "length",
+          "type": "INT",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "title": "H3 Video Duration in Seconds",
+      "properties": {
+        "Node name for S&R": "BExplainsH3Duration"
+      },
+      "widgets_values": [
+        5
+      ],
+      "widgets_values_named": {
+        "seconds": 5
+      }
+    },
+    {
+      "id": 27,
+      "type": "SeedNode",
+      "pos": [
+        1798.7804036105474,
+        320.7265684726292
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "seed",
+          "type": "INT",
+          "links": [
+            30
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SeedNode"
+      },
+      "widgets_values": [
+        42,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "seed": 42,
+        "control_after_generate": "fixed"
+      }
+    },
+    {
+      "id": 28,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -2.13925457306315,
+        0.21197492651936423
+      ],
+      "size": [
+        336.34987852117797,
+        119.07787329124648
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            32
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors",
+        1
+      ],
+      "widgets_values_named": {
+        "lora_name": "minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors",
+        "strength_model": 1
+      }
     }
   ],
   "links": [
@@ -801,14 +1236,6 @@
       9,
       1,
       "BEXPLAINS_REFERENCES"
-    ],
-    [
-      6,
-      1,
-      0,
-      10,
-      0,
-      "MODEL"
     ],
     [
       7,
@@ -875,14 +1302,6 @@
       "VAE"
     ],
     [
-      15,
-      12,
-      0,
-      13,
-      0,
-      "IMAGE"
-    ],
-    [
       16,
       10,
       4,
@@ -921,18 +1340,119 @@
       10,
       3,
       "VAE"
+    ],
+    [
+      21,
+      11,
+      0,
+      20,
+      0,
+      "LATENT"
+    ],
+    [
+      22,
+      21,
+      0,
+      20,
+      1,
+      "VAE"
+    ],
+    [
+      23,
+      12,
+      0,
+      22,
+      0,
+      "IMAGE"
+    ],
+    [
+      24,
+      12,
+      0,
+      23,
+      0,
+      "IMAGE"
+    ],
+    [
+      25,
+      20,
+      0,
+      23,
+      1,
+      "AUDIO"
+    ],
+    [
+      26,
+      23,
+      0,
+      24,
+      0,
+      "VIDEO"
+    ],
+    [
+      27,
+      25,
+      0,
+      10,
+      4,
+      "INT"
+    ],
+    [
+      28,
+      25,
+      1,
+      10,
+      5,
+      "INT"
+    ],
+    [
+      29,
+      26,
+      0,
+      10,
+      6,
+      "INT"
+    ],
+    [
+      30,
+      27,
+      0,
+      11,
+      4,
+      "INT"
+    ],
+    [
+      31,
+      1,
+      0,
+      28,
+      0,
+      "MODEL"
+    ],
+    [
+      32,
+      28,
+      0,
+      10,
+      0,
+      "MODEL"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7,
+      "scale": 1.0248700000000046,
       "offset": [
-        60,
-        60
+        -1125.1485380250183,
+        392.6540861348823
       ]
-    }
+    },
+    "frontendVersion": "1.58.0",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
   },
   "version": 0.4
 }
