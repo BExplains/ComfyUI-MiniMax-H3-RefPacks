@@ -121,13 +121,13 @@ Use the sampler settings known to work with your checkpoint. Distilled/turbo exa
 
 ### Reuse the entire scene
 
-Connect the final assembled references to **Save RefPacks References**, enter `concert_opening`, and queue the save. It creates:
+Connect the final assembled references to **Save RefPack Bundles**, enter `concert_opening`, and queue the save. It creates:
 
 ```text
 ComfyUI/models/refpacks/references/concert_opening.references.safetensors
 ```
 
-For another shot, use **Load RefPacks References** and connect it directly to the H3 receiver or inspector. The file contains all pack data, roles and ordering; the original individual pack files are not required. It does not include prompts, samplers or model weights.
+For another shot, use **Load RefPack Bundles** and connect it directly to the H3 receiver or inspector. The file contains all pack data, roles and ordering; the original individual pack files are not required. It does not include prompts, samplers or model weights.
 
 ### Inspect before sampling
 
@@ -225,7 +225,7 @@ Outputs: original `references`, `tag_mapping`, `compiled_prompt`, `Images`, `Aud
 
 ### Extract media from an inspected RefPack
 
-Connect **Load RefPack → Add RefPack → Inspect**, or connect **Load RefPacks References** directly to an inspector. Both the shared metadata inspector and **BExplains Inspect Refpacks** expose `Images` and `Audio` after their original outputs.
+Connect **Load RefPack → Add RefPack → Inspect**, or connect **Load RefPack Bundles** directly to an inspector. Both the shared metadata inspector and **BExplains Inspect Refpacks** expose `Images` and `Audio` after their original outputs.
 
 - **Images without `vae`:** returns the stored reference pixels without decoding. H3 video references contain sampled vision frames, not every frame of the source clip.
 - **Images with `vae`:** reconstructs image/video latents using the matching visual VAE. A video entry stays together as one IMAGE batch, suitable for video preview or re-encoding. Use the VAE matching the entries; mixed model-family sets may require inspecting separate sets.
@@ -465,7 +465,7 @@ Yes. Select Image, or Auto with length 1–4, and connect a matching H3 decoder.
 
 ### Can I save the entire cast, stage, outfit and motion setup?
 
-Yes. Save the final references output with the shared Save RefPacks References node. Load that single file for each new shot and change the prompt or generation settings as needed.
+Yes. Save the final references output with the shared Save RefPack Bundles node. Load that single file for each new shot and change the prompt or generation settings as needed.
 
 ### What if I want complete control of the prompt?
 
