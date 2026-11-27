@@ -392,7 +392,7 @@ For still output with the video architecture, complete input references remain a
 | Native H3 video/Ref2VA model path | Implemented |
 | Video diffusion model with recognized image/still decoder | Implemented for still output |
 | H3 Image diffusion model generating video | Rejected |
-| p-h3-image | Not implemented |
+| PH3ImageVAE (p-h3-image VAE) | Accepted for image reference encoding and still-output VAE selection; video output remains rejected. Thanks to @eulbart on YouTube for reporting successful use and identifying the unnecessary restriction. This does not add a new diffusion-model architecture. |
 | H3 still-image pack used on either native H3 model path | Implemented; preserves cached data without another VAE encode |
 | Image, video and standalone audio references | Implemented where accepted by the receiving architecture |
 | Character/Item/Motion aliases | Expanded only by the instruction compiler, not raw passthrough |

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.3 — 2026-11-27
+
+- Remove the unnecessary PH3ImageVAE rejection and classify it as an H3 image VAE. Image encoding and still-output selection now accept it; video output still requires a video-capable VAE.
+- Credit @eulbart on YouTube for discovering and reporting that PH3ImageVAE works after removing the restriction.
+- Add CPU regression checks for PH3 detection, reference encoding, still-output selection and video rejection. These checks do not assess GPU image quality.
+
 ## 1.1.2 — 2026-11-24
 
 - Rename the shared load/save node display names to Load RefPack Bundles and Save RefPack Bundles; update usage documentation.

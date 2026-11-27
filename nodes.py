@@ -48,9 +48,7 @@ def _target(value):
 
 def _vae_target(vae, legacy_target=None):
     names = {cls.__name__ for cls in type(getattr(vae, "first_stage_model", None)).__mro__}
-    if "PH3ImageVAE" in names:
-        raise ValueError("p-h3-image is not supported. Connect a native MiniMax H3 Image or Video VAE.")
-    if "MiniMaxH3ImageVAE" in names:
+    if names & {"PH3ImageVAE", "MiniMaxH3ImageVAE"}:
         return "h3_image"
     if "MiniMaxH3VideoVAE" in names:
         return "h3_image" if getattr(vae.first_stage_model, "still_frame", None) is not None or getattr(vae, "not_video", False) else "h3_video"

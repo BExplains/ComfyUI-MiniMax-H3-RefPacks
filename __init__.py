@@ -27,5 +27,5 @@ if "bexplains_refpacks" not in sys.modules:
 
 from .nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 WEB_DIRECTORY = "./web"
-__version__ = "1.0.1"
+__version__ = "1.1.3"
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
